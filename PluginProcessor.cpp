@@ -37,16 +37,7 @@ WaylochorderAudioProcessor::~WaylochorderAudioProcessor()
 
 // global variables for plugin
 
-int playing[127]; // array to hold notes playing
-int numChords; // num of chords in chord sequence
-int numNotes ; // number of notes in a chord
-int note; // a midi note value
-int chordsPosition = 0; // pointer to postion in chord array
-vector<int> chord;
-// initialize the chord array to 3 chords
-vector< vector<int> > chords { { 60, 67 , 72 },
-                                { 72 , 79 , 84 },
-                                { 77, 84, 89 } };
+
 
 
 
@@ -151,195 +142,38 @@ bool WaylochorderAudioProcessor::isBusesLayoutSupported (const BusesLayout& layo
   #endif
 }
 #endif
-
 void WaylochorderAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
+
 {
-    ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
-    auto totalNumOutputChannels = getTotalNumOutputChannels();
-
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
-    MidiMessage m; // the current MIDI message in the for loop
-    //int NoteNumberWaylo ;
     
-    /* iterate through the input buffer, process our MIDI, add it to the output buffer
-     for (MidiBuffer::Iterator i (midiMessages); i.getNextEvent (m, time);)
-     {
-     
-     if (m.isNoteOn())
-     {
-     m = MidiMessage::noteOn(m.getChannel(), m.getNoteNumber()+1, m.getVelocity());
-     }
-     processedMidi.addEvent (m, time);
-     if (m.isNoteOff())
-     {
-     m = MidiMessage::noteOn(m.getChannel(), m.getNoteNumber()+1, m.getVelocity());
-     }
-     processedMidi.addEvent (m, time);
-     
-     }
-     */
+    for (int i = getNumInputChannels(); i < getNumOutputChannels(); ++i)
+    {buffer.clear (i, 0, buffer.getNumSamples());}
+    
+    MidiBuffer processedMidi;
+    int time;
+    MidiMessage m;
+    int chordLength = 3;
+    for(MidiBuffer::Iterator i (midiMessages); i.getNextEvent(m, time);)
     {
-        buffer.clear();
-        
-        
-        MidiBuffer processedMidi;
-        int time;
-        MidiMessage m;
-        
-        for (MidiBuffer::Iterator i (midiMessages); i.getNextEvent (m, time);)
-        {
-            if (m.isNoteOn() && m.getNoteNumber() < 58 ) // reset the array position and play first chord
-                
-            {
-                chordsPosition = 0;
-                // play the first chord in the array
-                //m = MidiMessage::noteOff(m.getChannel(), m.getNoteNumber(), m.getVelocity());
-                // for notes in current  chord
-                /*
-                m = MidiMessage::noteOn(m.getChannel(), NewNote , m.getVelocity());
-                processedMidi.addEvent (m, time);
-                 */
-                
-            }
-            
-            else if (m.isNoteOff() && m.getNoteNumber() < 58 )
-            
-            {
-               // send note offs for first chord in array
-                // for notes in current  chord
-               // m = MidiMessage::noteOff(m.getChannel(), m.getNoteNumber(), m.getVelocity());
-                //processedMidi.addEvent (m, time);
-            }
-            
-            else if (m.isNoteOn() && m.getNoteNumber() == 59 )
-                
-            {
-                // move chord pointer back one space if it is not at zero
-                if (chordsPosition > 0)
-                { chordsPosition -= 1 ;}
-                
-                // now play chord at new pointer position
-                
-                
-                //int NewNote = m.getNoteNumber() + waylotrans -12;
-               // playing[m.getNoteNumber()]= NewNote;
-               // m = MidiMessage::noteOn(m.getChannel(), NewNote , m.getVelocity());
-                
-            }
-            else if (m.isNoteOff() && m.getNoteNumber() == 59)
-                
-            {
-                /*
-                int NewNote = playing[m.getNoteNumber()];
-                playing[m.getNoteNumber()] = NULL;
-                m = MidiMessage::noteOff(m.getChannel(), NewNote , m.getVelocity());
-                 */
-                
-            }
-            
-            else if (m.isNoteOn() && m.getNoteNumber() == 60 )
-                
-            {
+        if(m.isNoteOn()) {
+    for(int i = 0;i<chordLength;i++) {
 
-                // now play chord at current pointer position
-            }
-            else if (m.isNoteOff() && m.getNoteNumber() == 60)
-                
-            {
-                // send note off at current pointer position
-                
-                /*
-                int NewNote = playing[m.getNoteNumber()];
-                playing[m.getNoteNumber()] = NULL;
-                m = MidiMessage::noteOff(m.getChannel(), NewNote , m.getVelocity());
-                 */
-                
-            }
-            
-            else if (m.isNoteOn() && m.getNoteNumber() == 61 )
-                
-            {
-                
-                // now play chord at current pointer position
-                
-                
-                
-            }
-            else if (m.isNoteOff() && m.getNoteNumber() == 61)
-                
-            {
-                // send note off at current pointer position
-                
-                /*
-                int NewNote = playing[m.getNoteNumber()];
-                playing[m.getNoteNumber()] = NULL;
-                m = MidiMessage::noteOff(m.getChannel(), NewNote , m.getVelocity());
-                 */
-                
-            }
-            
-            else if (m.isNoteOn() && m.getNoteNumber() > 61 )
-                
-            {
-                
-                // move pointer forward unless it as end then do nothing
-                if ( chordsPosition < numChords  - 1 )
-                {
-                    chordsPosition += 1;
-                }
-                
-                // play chord at current position
-                
-                
-                
-            }
-            else if (m.isNoteOff() && m.getNoteNumber() > 61)
-                
-            {
-                // send note off at current pointer position
-                
-                /*
-                int NewNote = playing[m.getNoteNumber()];
-                playing[m.getNoteNumber()] = NULL;
-                m = MidiMessage::noteOff(m.getChannel(), NewNote , m.getVelocity());
-                 */
-                
-            }
-            
-            else if (m.isAftertouch())
-            {
-            }
-            else if (m.isPitchWheel())
-            {
-            }
-            
-           // processedMidi.addEvent (m, time);
+        int interval = 60 + i*12;
+        MidiMessage n = MidiMessage::noteOn(m.getChannel(), interval, m.getFloatVelocity());
+        processedMidi.addEvent(n, time);
+    }
         }
-        
-        midiMessages.swapWith (processedMidi);
+        else if(m.isNoteOff())
+        {
+            MidiMessage n = MidiMessage::allNotesOff(m.getChannel());
+            processedMidi.addEvent(n, time);
+        }
     }
-            
-            
+    midiMessages.swapWith(processedMidi);
+    
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
-
-        // ..do something to the data...
-    }
 }
+
     
 
 //==============================================================================
@@ -373,3 +207,4 @@ AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new WaylochorderAudioProcessor();
 }
+
