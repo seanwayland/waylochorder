@@ -47,22 +47,34 @@ vector<int> chord;
 vector< vector<int> > chords {
     { 41, 48 , 55, 56, 58, 63 },
     { 44 , 51 , 56, 58 , 61, 63 },
-    { 42 , 49, 56, 60 , 61 , 66 },
+    { 42 , 49, 56, 60 , 61 , 65 },
     {48, 49, 56 , 58 , 63 },
     { 51, 52, 59, 61, 68 },
     {39, 46, 58, 63, 67, 68 } ,
     { 48, 58 , 63 , 65, 68 },
     {41, 48, 58 , 63, 67 } ,
     {41, 48, 57, 62, 65 },
-    {46 , 53 , 60, 63, 68, 73, 74 },
-    { 44, 51, 58, 61, 66, 72 , 73 },
-    { 43, 50 , 58 , 60 , 65 , 72 , 73 },
-    { 41, 48 , 55 ,56 ,58 , 64}
+    { 41, 48 , 55, 56, 58, 63 },
+    { 44 , 51 , 56, 58 , 61, 63 },
+    { 42 , 49, 56, 60 , 61 , 65 },
+    {48, 49, 56 , 58 , 63 },
+    { 51, 52, 59, 61, 68 },
+    {39, 46, 58, 63, 67, 68 } ,
+    { 48, 58 , 63 , 65, 68 },
+    {41, 48, 58 , 63, 67 } ,
+    {41, 48, 57, 62, 65 },
+    {46 , 53 , 60, 63, 68, 72, 73 },
+    { 44, 51, 58, 63, 68, 72 , 73 },
+    { 43, 50 , 58 , 60 , 65 , 70,  72 , 73 },
+    { 42, 49 , 56 , 60 , 65 , 70,  72 , 73 },
+    { 46, 53 , 60  , 65 , 70,  72 , 73 },
+    {46 , 53 , 60, 63, 68, 72, 73 },
+    { 44, 51, 58, 63, 68, 72 , 73 },
+    { 43, 50 , 58 , 60 , 65 , 70,  72 , 73 },
+    { 42, 49 , 56 , 60 , 65 , 70,  72 , 73 },
+    { 46, 53 , 60  , 65 , 70,  72 , 73 },
+    { 41, 48 , 55 ,56 ,58 , 63}
 };
-
-
-
-
 
 
 //==============================================================================
@@ -183,9 +195,12 @@ void WaylochorderAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiB
         int time;
     
         
+        
         for (MidiBuffer::Iterator i (midiMessages); i.getNextEvent (m, time);)
         {
-            if (m.isNoteOn() && m.getNoteNumber() == 58 ) // reset the array position and play first chord
+            // middle C resets the sequence
+            
+            if (m.isNoteOn() && m.getNoteNumber() == 60 ) // reset the array position and play first chord
                 
             {
                 chordsPosition = 0;
@@ -203,17 +218,18 @@ void WaylochorderAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiB
                 
             }
             
+            // C# steps backwards
+            // if at start do nothing
             
-            
-            
-            
-            
-            else if (m.isNoteOn() && m.getNoteNumber() == 59 )
+            else if (m.isNoteOn() && m.getNoteNumber() == 61 )
                 
             {
                 // move chord pointer back one space if it is not at zero
                 if (chordsPosition > 0)
                 { chordsPosition -= 1 ;}
+                
+                else
+                { chordsPosition =  chords.size() - 1;}
                 
                 // now play chord at new pointer position
                 
@@ -232,50 +248,20 @@ void WaylochorderAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiB
                 
             }
             
-            /*
-            else if (m.isNoteOn() && m.getNoteNumber() == 60 )
-                
-            {
-                int chordSize = chords[chordsPosition].size();
-                
-                for ( int i = 0; i < chordSize; i++) {
-                    int NewNote = chords[chordsPosition][i];
-                    m = MidiMessage::noteOn(m.getChannel(), NewNote, m.getVelocity());
-                    processedMidi.addEvent(m, time);
-                }
-                
-            }
-             */
-            
-            /*
-            
-            else if (m.isNoteOn() && m.getNoteNumber() == 61 )
-                
-            {
-                int chordSize = chords[chordsPosition].size();
-                // now play chord at current pointer position
-                for ( int i = 0; i < chordSize; i++) {
-                    int NewNote = chords[chordsPosition][i];
-                    m = MidiMessage::noteOn(m.getChannel(), NewNote, m.getVelocity());
-                    processedMidi.addEvent(m, time);
-                }//
-                
-                
-                
-            }
-            
-            */
-            else if (m.isNoteOn() && m.getNoteNumber() == 60 )
+
+            // D moves forwards through sequence
+            // If at end go back to beginning
+            else if (m.isNoteOn() && m.getNoteNumber() == 62 )
                 
             {
                 
                 // move pointer forward unless it as end then do nothing
-                if ( chordsPosition < 12 )
+                if ( chordsPosition < (chords.size() -1)  )
                 {
                     chordsPosition += 1;
                 }
                 
-                else if ( chordsPosition ==12 )
+                else if ( chordsPosition == (chords.size() -1) )
                 {
                     chordsPosition = 0;
                 }
@@ -294,7 +280,6 @@ void WaylochorderAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiB
                 
                 
                 
-                
             }
             else if (m.isNoteOff())
                 
@@ -310,7 +295,6 @@ void WaylochorderAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiB
                 
             }
  
-            
             else if (m.isAftertouch())
             {
             }
@@ -325,8 +309,7 @@ void WaylochorderAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiB
     }
     
     
-    
-    
+
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
     // Make sure to reset the state if your inner loop is processing
