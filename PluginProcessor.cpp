@@ -42,6 +42,7 @@ int numChords; // num of chords in chord sequence
 int numNotes ; // number of notes in a chord
 int note; // a midi note value
 int chordsPosition = 0; // pointer to postion in chord array
+int midChan = 0;
 vector<int> chord;
 // initialize the chord array to 3 chords
 vector< vector<int> > chords {
@@ -184,16 +185,16 @@ void WaylochorderAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiB
     
     
     MidiMessage m;
- 
+    
     
     
     {
-    buffer.clear();
+        buffer.clear();
         
         
         MidiBuffer processedMidi;
         int time;
-    
+        
         
         
         for (MidiBuffer::Iterator i (midiMessages); i.getNextEvent (m, time);)
@@ -248,7 +249,7 @@ void WaylochorderAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiB
                 
             }
             
-
+            
             // D moves forwards through sequence
             // If at end go back to beginning
             else if (m.isNoteOn() && m.getNoteNumber() == 62 )
@@ -286,15 +287,16 @@ void WaylochorderAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiB
             {
                 // send note off at current pointer position
                 
-                //for (int j = 0; j <= 16 ; j++) {
-                    for (int i = 0; i < 128; ++i){
-                        m = MidiMessage::noteOff(1, i, 0.0f);
-                        processedMidi.addEvent(m, time);
-                    }
+                
+                for (int i = 0; i < 128; ++i){
+                    m = MidiMessage::noteOff(m.getChannel(), i, 0.0f);
+                    processedMidi.addEvent(m, time);
+                }
+                
                 
                 
             }
- 
+            
             else if (m.isAftertouch())
             {
             }
@@ -309,7 +311,7 @@ void WaylochorderAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiB
     }
     
     
-
+    
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
     // Make sure to reset the state if your inner loop is processing
