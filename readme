@@ -1,2 +1,14 @@
 
-midi plugin to store chords and use them to play bass lines and chords with one hand 
+midi plugin to store chords and use them to play bass lines
+and chords with one hand 
+G# midi note 68 above middle C turns off the midi hold/latch/sustain 
+
+C 60 starts back to beginning of sequence
+C# 61 takes you back a chord 
+61 , 62  plays current chord
+63, 64 plays next chord
+65, 66 plays random chord from sequence 
+
+midi notes above 68 sends all notes off 
+
+
