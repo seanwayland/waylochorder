@@ -12,6 +12,7 @@
 #include "PluginEditor.h"
 #include <iostream>
 #include <vector>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -43,6 +44,7 @@ int numNotes ; // number of notes in a chord
 int note; // a midi note value
 int chordsPosition = 0; // pointer to postion in chord array
 int midChan = 0;
+int latchBool = 1;
 vector<int> chord;
 // initialize the chord array to 3 chords
 vector< vector<int> > chords {
@@ -145,6 +147,10 @@ void WaylochorderAudioProcessor::prepareToPlay (double sampleRate, int samplesPe
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+    for (int i = 0; i < 127 ; i++ ){
+        playing[i]= 0;
+    }
+    
 }
 
 void WaylochorderAudioProcessor::releaseResources()
@@ -185,6 +191,7 @@ void WaylochorderAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiB
     
     
     MidiMessage m;
+    MidiMessage n;
     
     
     
@@ -199,10 +206,14 @@ void WaylochorderAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiB
         
         for (MidiBuffer::Iterator i (midiMessages); i.getNextEvent (m, time);)
         {
-            // middle C resets the sequence
             
+            
+            
+            if (latchBool ==0 )
+            {
+            
+            // middle C resets the sequence
             if (m.isNoteOn() && m.getNoteNumber() == 60 ) // reset the array position and play first chord
-                
             {
                 chordsPosition = 0;
                 // play the first chord in the array
@@ -214,6 +225,16 @@ void WaylochorderAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiB
                     int NewNote = chords[chordsPosition][i];
                     m = MidiMessage::noteOn(m.getChannel(), NewNote, m.getVelocity());
                     processedMidi.addEvent(m, time);
+                }
+            }
+            
+            else if (m.isNoteOn() && m.getNoteNumber() > 68 ){
+                
+                for ( int j = 0 ; j < 127; j++)
+                {
+                    n = MidiMessage::noteOff(m.getChannel(), j);
+                    processedMidi.addEvent(n, time);
+                    
                 }
                 
                 
@@ -242,17 +263,47 @@ void WaylochorderAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiB
                     processedMidi.addEvent(m, time);
                 }
                 
+        }
+            
+            else if (m.isNoteOn() && m.getNoteNumber() == 62 )
                 
-                //int NewNote = m.getNoteNumber() + waylotrans -12;
-                // playing[m.getNoteNumber()]= NewNote;
-                // m = MidiMessage::noteOn(m.getChannel(), NewNote , m.getVelocity());
+            {
                 
+
+                
+                int chordSize = chords[chordsPosition].size();
+                // play chord at current position
+                
+                // now play chord at current pointer position
+                for ( int i = 0; i < chordSize; i++) {
+                    int NewNote = chords[chordsPosition][i];
+                    m = MidiMessage::noteOn(m.getChannel(), NewNote, m.getVelocity());
+                    processedMidi.addEvent(m, time);
+                }//
+                
+            }
+            
+            else if (m.isNoteOn() && m.getNoteNumber() == 63 )
+            {
+
+                
+                int chordSize = chords[chordsPosition].size();
+                // play chord at current position
+                
+                // now play chord at current pointer position
+                for ( int i = 0; i < chordSize; i++) {
+                    int NewNote = chords[chordsPosition][i];
+                    m = MidiMessage::noteOn(m.getChannel(), NewNote, m.getVelocity());
+                    processedMidi.addEvent(m, time);
+                }//
+                
+
             }
             
             
             // D moves forwards through sequence
             // If at end go back to beginning
-            else if (m.isNoteOn() && m.getNoteNumber() == 62 )
+            else if (m.isNoteOn() && m.getNoteNumber() == 64 )
                 
             {
                 
@@ -280,7 +331,75 @@ void WaylochorderAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiB
                 }//
                 
                 
+            }
+            
+            else if (m.isNoteOn() && m.getNoteNumber() == 65 )
                 
+            {
+                
+                // move pointer forward unless it as end then do nothing
+                if ( chordsPosition < (chords.size() -1)  )
+                {
+                    chordsPosition += 1;
+                }
+                
+                else if ( chordsPosition == (chords.size() -1) )
+                {
+                    chordsPosition = 0;
+                }
+                
+                else {}
+                
+                int chordSize = chords[chordsPosition].size();
+                // play chord at current position
+                
+                // now play chord at current pointer position
+                for ( int i = 0; i < chordSize; i++) {
+                    int NewNote = chords[chordsPosition][i];
+                    m = MidiMessage::noteOn(m.getChannel(), NewNote, m.getVelocity());
+                    processedMidi.addEvent(m, time);
+                }//
+            
+                
+            }
+            
+            else if (m.isNoteOn() && m.getNoteNumber() == 66 )
+                
+            {
+                chordsPosition = rand() % (chords.size() - 1);
+                
+                int chordSize = chords[chordsPosition].size();
+                // play chord at current position
+                
+                // now play chord at current pointer position
+                for ( int i = 0; i < chordSize; i++) {
+                    int NewNote = chords[chordsPosition][i];
+                    m = MidiMessage::noteOn(m.getChannel(), NewNote, m.getVelocity());
+                    processedMidi.addEvent(m, time);
+                }//
+                
+                
+            }
+            else if (m.isNoteOn() && m.getNoteNumber() == 67 )
+                
+            {
+                chordsPosition = rand() % (chords.size() - 1);
+                
+                int chordSize = chords[chordsPosition].size();
+                // play chord at current position
+                
+                // now play chord at current pointer position
+                for ( int i = 0; i < chordSize; i++) {
+                    int NewNote = chords[chordsPosition][i];
+                    m = MidiMessage::noteOn(m.getChannel(), NewNote, m.getVelocity());
+                    processedMidi.addEvent(m, time);
+                }//
+                
+                
+            }
+            else if (m.isNoteOn() && m.getNoteNumber() == 68 )
+            {
+                latchBool = 1;
             }
             else if (m.isNoteOff())
                 
@@ -293,8 +412,6 @@ void WaylochorderAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiB
                     processedMidi.addEvent(m, time);
                 }
                 
-                
-                
             }
             
             else if (m.isAftertouch())
@@ -304,13 +421,205 @@ void WaylochorderAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiB
             {
             }
             
+            } // end of latchbool loop
+            // LATCHBOOL IS ON
             // processedMidi.addEvent (m, time);
+            else {
+                
+
+                if (m.isNoteOn() && m.getNoteNumber() == 68)
+                { latchBool = 0;}
+                else if (m.isNoteOn() && m.getNoteNumber() != 68)
+                {
+
+                    for ( int j = 0 ; j < 127; j++)
+                    { if (playing[j] == 1) {
+                        n = MidiMessage::noteOff(m.getChannel(), j);
+                        processedMidi.addEvent(n, time);
+                        playing[j] = 0;
+                    }
+                    }
+                    
+                    
+                }
+                else if (m.isNoteOff() && m.getNoteNumber() == 60 ) // reset the array position and play first chord
+                {
+                    chordsPosition = 0;
+                    // play the first chord in the array
+                    int chordSize = chords[chordsPosition].size();
+                    //int chordSize = 6;
+                    
+                    // for notes in current  chord
+                    for ( int i = 0; i < chordSize; i++) {
+                        int NewNote = chords[chordsPosition][i];
+                        m = MidiMessage::noteOn(m.getChannel(), NewNote, 127.0f);
+                        processedMidi.addEvent(m, time);
+                        playing[NewNote] = 1;
+                    }
+                }
+                
+                else if (m.isNoteOff() && m.getNoteNumber() == 61 ) // reset the array position and play first chord
+                {
+                    
+                    // move chord pointer back one space if it is not at zero
+                    if (chordsPosition > 0)
+                    { chordsPosition -= 1 ;}
+                    
+                    else
+                    { chordsPosition =  chords.size() - 1;}
+                    
+                    int chordSize = chords[chordsPosition].size();
+                    //int chordSize = 6;
+                    
+                    // for notes in current  chord
+                    for ( int i = 0; i < chordSize; i++) {
+                        int NewNote = chords[chordsPosition][i];
+                        m = MidiMessage::noteOn(m.getChannel(), NewNote, 127.0f);
+                        processedMidi.addEvent(m, time);
+                        playing[NewNote] = 1;
+                    }
+                }
+                
+                else if (m.isNoteOff() && m.getNoteNumber() == 62 ) // reset the array position and play first chord
+                {
+
+                    
+                    int chordSize = chords[chordsPosition].size();
+                    //int chordSize = 6;
+                    
+                    // for notes in current  chord
+                    for ( int i = 0; i < chordSize; i++) {
+                        int NewNote = chords[chordsPosition][i];
+                        m = MidiMessage::noteOn(m.getChannel(), NewNote, 127.0f);
+                        processedMidi.addEvent(m, time);
+                        playing[NewNote] = 1;
+                    }
+                }
+                
+                else if (m.isNoteOff() && m.getNoteNumber() == 63 ) // reset the array position and play first chord
+                {
+                    
+                    
+                    int chordSize = chords[chordsPosition].size();
+                    //int chordSize = 6;
+                    
+                    // for notes in current  chord
+                    for ( int i = 0; i < chordSize; i++) {
+                        int NewNote = chords[chordsPosition][i];
+                        m = MidiMessage::noteOn(m.getChannel(), NewNote, 127.0f);
+                        processedMidi.addEvent(m, time);
+                        playing[NewNote] = 1;
+                    }
+                }
+                
+                else if (m.isNoteOff() && m.getNoteNumber() == 64 ) // reset the array position and play first chord
+                {
+                    // move pointer forward unless it as end then do nothing
+                    if ( chordsPosition < (chords.size() -1)  )
+                    {
+                        chordsPosition += 1;
+                    }
+                    
+                    else if ( chordsPosition == (chords.size() -1) )
+                    {
+                        chordsPosition = 0;
+                    }
+                    
+                    else {}
+                    
+                    int chordSize = chords[chordsPosition].size();
+                    //int chordSize = 6;
+                    
+                    // for notes in current  chord
+                    for ( int i = 0; i < chordSize; i++) {
+                        int NewNote = chords[chordsPosition][i];
+                        m = MidiMessage::noteOn(m.getChannel(), NewNote, 127.0f);
+                        processedMidi.addEvent(m, time);
+                        playing[NewNote] = 1;
+                    }
+                }
+                
+                else if (m.isNoteOff() && m.getNoteNumber() == 65 ) // reset the array position and play first chord
+                {
+                    // move pointer forward unless it as end then do nothing
+                    if ( chordsPosition < (chords.size() -1)  )
+                    {
+                        chordsPosition += 1;
+                    }
+                    
+                    else if ( chordsPosition == (chords.size() -1) )
+                    {
+                        chordsPosition = 0;
+                    }
+                    
+                    else {}
+                    
+                    int chordSize = chords[chordsPosition].size();
+                    //int chordSize = 6;
+                    
+                    // for notes in current  chord
+                    for ( int i = 0; i < chordSize; i++) {
+                        int NewNote = chords[chordsPosition][i];
+                        m = MidiMessage::noteOn(m.getChannel(), NewNote, 127.0f);
+                        processedMidi.addEvent(m, time);
+                        playing[NewNote] = 1;
+                    }
+                }
+                
+                else if (m.isNoteOff() && m.getNoteNumber() == 66 ) // reset the array position and play first chord
+                {
+                    // move pointer forward unless it as end then do nothing
+
+                    chordsPosition = rand() % (chords.size() - 1);
+                    int chordSize = chords[chordsPosition].size();
+                    //int chordSize = 6;
+                    
+                    // for notes in current  chord
+                    for ( int i = 0; i < chordSize; i++) {
+                        int NewNote = chords[chordsPosition][i];
+                        m = MidiMessage::noteOn(m.getChannel(), NewNote, 127.0f);
+                        processedMidi.addEvent(m, time);
+                        playing[NewNote] = 1;
+                    }
+                }
+                
+                else if (m.isNoteOff() && m.getNoteNumber() == 67 ) // reset the array position and play first chord
+                {
+                    // move pointer forward unless it as end then do nothing
+                    
+                    chordsPosition = rand() % (chords.size() - 1);
+                    int chordSize = chords[chordsPosition].size();
+                    //int chordSize = 6;
+                    
+                    // for notes in current  chord
+                    for ( int i = 0; i < chordSize; i++) {
+                        int NewNote = chords[chordsPosition][i];
+                        m = MidiMessage::noteOn(m.getChannel(), NewNote, 127.0f);
+                        processedMidi.addEvent(m, time);
+                        playing[NewNote] = 1;
+                    }
+                }
+                
+                else if (m.isAftertouch())
+                {
+                }
+                else if (m.isPitchWheel())
+                {
+                }
+                
+                
+                
+                
+
+                
+                
+                
+            }
         }
         
         midiMessages.swapWith (processedMidi);
     }
-    
-    
+
     
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
