@@ -68,16 +68,21 @@ int main() {
         cout << endl;
     }
 
-    // store the array to a file
-    std::ofstream ofs("dump.dat");
-    boost::archive::text_oarchive oa(ofs);
-    oa & chords;
+    { //<--
+        // store the array to a file
+        std::ofstream ofs("dump.dat");
+        boost::archive::text_oarchive oa(ofs);
+        oa & chords;
+    }
 
     chords.clear(); // clear the original array
-    // restore the array from the file
-    std::ifstream ifs("dump.dat");
-    boost::archive::text_iarchive ia(ifs);
-    ia & chords;
+
+    { // <--
+        // restore the array from the file
+        std::ifstream ifs("dump.dat");
+        boost::archive::text_iarchive ia(ifs);
+        ia & chords;
+    }
 
     cout << endl << "you saved: " << endl;
     // print the restored array
